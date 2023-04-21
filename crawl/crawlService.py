@@ -23,7 +23,7 @@ class DataCrawling:
 	def crawling(self):
 		# create a dictionary to store the scraped data
 		data = {
-			"news_list": []
+			"data_crawling": []
 		}
 
 		# crawl pages
@@ -32,6 +32,7 @@ class DataCrawling:
 				rs = requests.get('https://tuoitre.vn/tin-moi-nhat.htm')
 			else:
 				rs = requests.get(f'https://tuoitre.vn/timeline/0/trang-{i}.htm')
+				
 			soup = BeautifulSoup(rs.text, 'html.parser')
 			news_items = soup.select(".box-category-item")
 			for item in news_items:
@@ -45,7 +46,7 @@ class DataCrawling:
 				content = item.p.string
 
 				# add data to the dictionary
-				data["news_list"].append({
+				data["data_crawling"].append({
 					"time_stamp": time_stamp, 
 					"news_url": news_url, 
 					"news_id": news_id, 
@@ -62,4 +63,4 @@ class DataCrawling:
 
 	def send_data(self):
 		# send a POST request to a URL with the scraped data in JSON format
-		requests.post('http://localhost:9000/', data=json.dumps(self.data_crawling))
+		requests.post('http://models:1919/insertData', data=json.dumps(self.data_crawling))

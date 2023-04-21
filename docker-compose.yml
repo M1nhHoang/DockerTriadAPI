@@ -1,12 +1,36 @@
-version: '1.0'
+version: '3'
+
 services:
   my_sql:
+    build: ./database
     container_name: my_sql
-    image: mysql:latest
     ports:
-      - 3306:3306
+      - 6603:3306
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
-      - ./database/init_db:/docker-entrypoint-initdb.d/:ro
       - ./database/mysql_data/:/var/lib/mysql
+
+  models:
+    build: ./models
+    container_name: models
+    ports:
+      - 9999:1919
+    depends_on:
+      - my_sql
+
+  crawl:
+    build: ./crawl
+    container_name: crawl
+    ports:
+      - 8888:1818
+    depends_on:
+      - my_sql
+
+  main:
+    build: ./
+    container_name: main
+    ports:
+      - 7777:1717
+    depends_on:
+      - my_sql

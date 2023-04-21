@@ -4,6 +4,6 @@
         "port": 3306,
         "username": "root",
         "password": "root",
-        "database_name": "my_db"
+        "database_name": "dbTinTuc"
 	}
 }

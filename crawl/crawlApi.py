@@ -14,3 +14,4 @@ def startup():
 @app.post("/currentCrawl")
 def currentCrawl():
 	crawling.crawling()
+	return {"status": "success"}

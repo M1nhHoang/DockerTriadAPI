@@ -81,3 +81,28 @@ class sqlDataAccess:
         await cur.callproc(psName, values)
         result = await cur.fetchall()
         return result if result else f"{cur.rowcount} rows affected"
+
+class modelService:
+  def __init__(self):
+    self.sqlQuery = None
+
+  async def insertStringQuery(self, data):
+    self.sqlQuery = "INSERT INTO tb_news (news_id, news_url, title, category, content, image, time_stamp) VALUES" 
+    for items in data['data_crawling']:
+      content_value = items["content"].replace('"', '\\"')
+      title_value = items["title"].replace('"', '\\"')
+      self.sqlQuery += f'("{items["news_id"]}", "{items["news_url"]}", "{title_value}", "{items["category"]}", "{content_value}", "{items["image"]}", "{items["time_stamp"]}"),'
+
+    self.sqlQuery = self.sqlQuery[:-1] + ' ON DUPLICATE KEY UPDATE news_id = VALUES(news_id), news_url = VALUES(news_url), title = VALUES(title), category = VALUES(category), content = VALUES(content), image = VALUES(image),time_stamp = VALUES(time_stamp);'
+
+  async def getReportJSON(self, reportList):
+    result = []
+    for item in reportList:
+      result.append({
+          "datetime": str(item[0]),
+          "insert": str(item[1]),
+          "update": str(item[2]),
+          "delete": str(item[3]),
+          "duplicate": str(item[4])
+      })
+    return json.dumps(result)

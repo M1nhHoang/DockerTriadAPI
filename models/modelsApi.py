@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Request
-from sqlDataAccess import sqlDataAccess
+from modelsService import sqlDataAccess, modelService
+from fastapi.responses import JSONResponse
+import json
 
 app = FastAPI()
 sql = sqlDataAccess()
+service = modelService()
 
 # create middleware
 @app.on_event("startup")
@@ -10,24 +13,33 @@ async def startup():
 	# connect to database
     await sql.connect()
 
+
 # create api end-point
-@app.get("/findNews")
+# tìm kiếm tin tức
+@app.get("/sreach")
 async def findNews(content: str):
 	result = await sql.execute_storedProcedure('psGetNews', [content])
 	return {"status": "success",
-			"persons": result}
+			"result": json.dumps(result, default=str)}
 
+# thống kê dữ liệu
 @app.get("/reportData")
 async def reportData():
-	pass
+	result = await service.getReportJSON(await sql.execute_storedProcedure('psGetLog'))
+	return {"status": "success",
+			"result": json.loads(result)}
 
+# insert maunal
 @app.post("/insertData")
 async def insertData(request: Request):
 	payload = await request.json()
-	pass
+	await service.insertStringQuery(payload)
+	result = await sql.execute(service.sqlQuery)
+	return {"status": "success"}
 
+# lấy toàn bộ tin tức
 @app.get("/getNews")
-async def findNews(content: str):
+async def findNews():
 	result = await sql.execute_storedProcedure('psGetNews', [None])
 	return {"status": "success",
-			"persons": result}
+			"result": result}

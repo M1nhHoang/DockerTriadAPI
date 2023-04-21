@@ -16,7 +16,7 @@ CREATE TABLE tb_news (
 CREATE TABLE tb_log (
 	id INT NOT NULL AUTO_INCREMENT,
 	table_name VARCHAR(255) NOT NULL,
-	operation ENUM('INSERT', 'UPDATE', 'DELETE') NOT NULL,
+	operation ENUM('INSERT', 'UPDATE', 'DELETE', 'DUPLICATE') NOT NULL,
 	old_value JSON,
 	new_value JSON,
 	created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL 7 HOUR),
@@ -26,7 +26,7 @@ CREATE TABLE tb_log (
 DELIMITER $
 # create procedure
 CREATE PROCEDURE psGetNews(
-	IN _content varchar(255)
+	IN _content varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
 	IF _content IS NULL THEN
@@ -34,6 +34,31 @@ BEGIN
 	ELSE
 		SELECT * FROM tb_news WHERE title LIKE CONCAT('%', _content, '%') OR content LIKE CONCAT('%', _content, '%');
 	END IF;
+END $
+
+CREATE PROCEDURE psInsertManual(
+	IN id VARCHAR(255),
+	IN url VARCHAR(255),
+	IN title VARCHAR(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+	IN category VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+	IN content VARCHAR(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+	IN image VARCHAR(1000),
+	IN time_stamp DATETIME
+)
+BEGIN
+	INSERT INTO tb_news
+	VALUES (id, url, title, category, content, image, time_stamp);
+END $
+
+CREATE PROCEDURE psGetLog()
+BEGIN
+	SELECT created_at, 
+		SUM(CASE WHEN operation = 'INSERT' THEN 1 ELSE 0 END) AS 'insert', 
+		SUM(CASE WHEN operation = 'UPDATE' THEN 1 ELSE 0 END) AS 'update',
+		SUM(CASE WHEN operation = 'DELETE' THEN 1 ELSE 0 END) AS 'delete',
+		SUM(CASE WHEN operation = 'DUPLICATE' THEN 1 ELSE 0 END) AS 'duplicate'
+	FROM tb_log 
+	GROUP BY created_at;
 END $
 
 # create trigger
@@ -49,8 +74,18 @@ CREATE TRIGGER log_update_trigger
 AFTER UPDATE ON tb_news
 FOR EACH ROW
 BEGIN
+	IF NOT (OLD.news_id <=> NEW.news_id AND OLD.news_url <=> NEW.news_url AND OLD.title <=> NEW.title AND OLD.category <=> NEW.category AND OLD.content <=> NEW.content AND OLD.image <=> NEW.image AND OLD.time_stamp <=> NEW.time_stamp) THEN
+		INSERT INTO tb_log (table_name, operation, old_value, new_value)
+		VALUES ('tb_news', 'UPDATE', JSON_OBJECT('news_id', OLD.news_id, 'news_url', OLD.news_url, 'title', OLD.title, 'category', OLD.category, 'content', OLD.content, 'image', OLD.image, 'time_stamp', OLD.time_stamp), JSON_OBJECT('news_id', NEW.news_id, 'news_url', NEW.news_url, 'title', NEW.title, 'category', NEW.category, 'content', NEW.content, 'image', NEW.image, 'time_stamp', NEW.time_stamp));
+	END IF;
+END$
+
+CREATE TRIGGER log_duplicate_trigger
+AFTER UPDATE ON tb_news
+FOR EACH ROW
+BEGIN
 	INSERT INTO tb_log (table_name, operation, old_value, new_value)
-	VALUES ('tb_news', 'UPDATE', JSON_OBJECT('news_id', OLD.news_id, 'news_url', OLD.news_url, 'title', OLD.title, 'category', OLD.category, 'content', OLD.content, 'image', OLD.image, 'time_stamp', OLD.time_stamp), JSON_OBJECT('news_id', NEW.news_id, 'news_url', NEW.news_url, 'title', NEW.title, 'category', NEW.category, 'content', NEW.content, 'image', NEW.image, 'time_stamp', NEW.time_stamp));
+	VALUES ('tb_news', 'DUPLICATE', JSON_OBJECT('news_id', OLD.news_id, 'news_url', OLD.news_url, 'title', OLD.title, 'category', OLD.category, 'content', OLD.content, 'image', OLD.image, 'time_stamp', OLD.time_stamp), JSON_OBJECT('news_id', NEW.news_id, 'news_url', NEW.news_url, 'title', NEW.title, 'category', NEW.category, 'content', NEW.content, 'image', NEW.image, 'time_stamp', NEW.time_stamp));
 END$
 
 CREATE TRIGGER log_delete_trigger

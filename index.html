@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<meta charset="UTF-8">
+    <title>Search Form</title>
+    <style>
+		#search-form, #result{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		#search-box {
+			width: 400px;
+			height: 40px;
+			border-radius: 20px;
+			border: 1px solid #ccc;
+			padding: 0 10px;
+			font-size: 16px;
+			margin-right: 10px;
+		}
+		#search-button {
+			width: 100px;
+			height: 40px;
+			background-color: #007bff;
+			color: #fff;
+			border-radius: 20px;
+			border: none;
+			font-size: 16px;
+			cursor: pointer;
+		}
+
+		#result{
+			width: 600px;
+			margin: auto;
+			margin-top: 10px;
+			flex-direction: column;
+		}
+
+		.box-category-item {
+		  display: flex;
+		  margin-bottom: 20px;
+		  border-bottom: 1px solid #ddd;
+		  padding-bottom: 20px;
+		}
+
+		.box-category-link-with-avatar {
+		  display: block;
+		  flex: 0 0 200px;
+		  margin-right: 20px;
+		}
+
+		.box-category-avatar {
+		  display: block;
+		  width: 100%;
+		  height: 100%;
+		}
+
+		.box-category-content {
+		  flex: 1;
+		}
+
+		.box-category-category {
+		  font-size: 12px;
+		  text-transform: uppercase;
+		  color: #888;
+		}
+
+		.box-content-title {
+		  margin-top: 10px;
+		  margin-bottom: 10px;
+		}
+
+		.box-title-text {
+		  font-size: 18px;
+		  font-weight: bold;
+		}
+
+		.box-category-link-title {
+		  color: #000;
+		  text-decoration: none;
+		}
+
+		.box-category-link-title:hover {
+		  text-decoration: underline;
+		}
+
+		.box-category-sapo {
+		  color: #555;
+		  font-size: 14px;
+		  line-height: 1.4;
+		  margin-top: 10px;
+		}
+    </style>
+  </head>
+  <body>
+    <div id="search-form">
+      <input type="text" id="search-box" placeholder="Tìm kiếm theo từ khóa ....">
+      <button id="search-button">Search</button>
+    </div>
+    <div id="result">
+    	
+    </div>
+    <script>
+		const searchButton = document.getElementById("search-button");
+		const itemsSesult = document.getElementById("result");
+		const searchBox = document.getElementById("search-box");
+		var data;
+
+		function showMention(data) {
+			return `
+				<div class="box-category-item">
+				  <a class="box-category-link-with-avatar img-resize" data-type="" data-newstype="" href="https://tuoitre.vn/${data[1]}" title="${data[2]}">
+				      <img data-type="avatar" loading="lazy" src="${data[5]}" alt="${data[2]}" class="box-category-avatar">
+				      
+				  </a>
+				  <div class="box-category-content">
+				      <a class="box-category-category" title="${data[3]}">${data[3]}</a>
+				      <div class="box-content-title">
+				          <h3 class="box-title-text" data-comment="${data[0]}">
+				              <a class="box-category-link-title" data-objecttype="" data-type="" data-linktype="newsdetail" data-newstype="" data-id="${data[0]}" href="https://tuoitre.vn/${data[1]}" title="${data[2]}">${data[2]}</a>
+				          </h3>
+				      </div>
+				      <p data-type="sapo" class="box-category-sapo" rel="3" data-loaded="true">${data[4]}</p>
+				  </div>
+				</div>
+			`
+		}
+
+		var last_value = '';
+		var timeout = null;
+
+		setInterval(async () => {
+		if (searchBox.value != '' && searchBox.value != last_value) {
+		  clearTimeout(timeout);
+		  timeout = setTimeout(async () => {
+		    const url = "http://localhost:7777/findNews?content=" + searchBox.value;
+		    const response = await fetch(url);
+		    try {
+	  			const chatListItemsHTML = (await response.json()).map(showMention).join('');
+			    itemsSesult.innerHTML = chatListItemsHTML;
+				}
+				catch(err) {
+				  itemsSesult.innerHTML = "";
+				}
+		    
+		  }, 1000);
+		}else if (searchBox.value == ''){
+		  	itemsSesult.innerHTML = '';
+		}
+			last_value = searchBox.value
+		}, 500);
+
+		searchButton.addEventListener("click", async () => {
+				const searchTerm = searchBox.value;
+				const url = "http://localhost:7777/findNews?content=" + searchTerm;
+				const response = await fetch(url);
+				try {
+	  			const chatListItemsHTML = (await response.json()).map(showMention).join('');
+			    itemsSesult.innerHTML = chatListItemsHTML;
+				}
+				catch(err) {
+				  itemsSesult.innerHTML = "";
+				}
+    	});
+
+    </script>
+  </body>
+</html>
