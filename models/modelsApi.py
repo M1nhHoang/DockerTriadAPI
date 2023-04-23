@@ -11,8 +11,13 @@ service = modelService()
 # create middleware
 @app.on_event("startup")
 async def startup():
-	# connect to database
-    await sql.connect()
+	# connect to database unti success
+	while True:
+		try:
+			await sql.connect()
+			break
+		except:
+			pass
 
 
 # create api end-point
