@@ -4,6 +4,6 @@ WORKDIR /api
 
 COPY ./ /api
 
-RUN pip install fastapi uvicorn aiomysql cryptography
+RUN pip install fastapi uvicorn aiomysql cryptography pandas
 
 CMD ["bash", "-c", "uvicorn modelsApi:app --host 0.0.0.0 --port 1919 --reload"]

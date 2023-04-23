@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
-import requests
-import json
+import requests, json, pytz
 
 class DataCrawling:
 	def __init__(self):
@@ -17,7 +16,7 @@ class DataCrawling:
 
 	def timer_crawl(self):
 		# start scheduler to run crawling at specific times
-		self.scheduler.add_job(self.crawling, 'cron', hour=self.crawl_delay["hour"], minute=self.crawl_delay["minute"])
+		self.scheduler.add_job(self.crawling, 'cron', hour=self.crawl_delay["hour"], minute=self.crawl_delay["minute"], timezone=pytz.timezone('Asia/Bangkok'))
 		self.scheduler.start()
 
 	def crawling(self):

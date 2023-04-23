@@ -136,7 +136,7 @@
 		    const url = "http://localhost:7777/findNews?content=" + searchBox.value;
 		    const response = await fetch(url);
 		    try {
-	  			const chatListItemsHTML = (await response.json()).map(showMention).join('');
+	  			const chatListItemsHTML = ((await response.json()).result).map(showMention).join('');
 			    itemsSesult.innerHTML = chatListItemsHTML;
 				}
 				catch(err) {
@@ -155,7 +155,7 @@
 				const url = "http://localhost:7777/findNews?content=" + searchTerm;
 				const response = await fetch(url);
 				try {
-	  			const chatListItemsHTML = (await response.json()).map(showMention).join('');
+	  			const chatListItemsHTML = ((await response.json()).result).map(showMention).join('');
 			    itemsSesult.innerHTML = chatListItemsHTML;
 				}
 				catch(err) {

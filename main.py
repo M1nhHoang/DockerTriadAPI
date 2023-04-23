@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-import requests
+from fastapi.responses import JSONResponse
+import requests, json
 
 app = FastAPI()
 
@@ -13,4 +14,4 @@ async def index():
 @app.get("/findNews")
 async def findNews(content: str):
     result = requests.get(f'http://models:1919/sreach?content={content}')
-    return JSONResponse(content=json.loads(result), headers={"Access-Control-Allow-Origin": "*"})
+    return JSONResponse(content=json.loads(result.text), headers={"Access-Control-Allow-Origin": "*"})

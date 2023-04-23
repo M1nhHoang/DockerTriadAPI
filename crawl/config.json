@@ -1,8 +1,8 @@
 {
 	"crawl": {
 		"delay": {
-			"hour": 7,
-			"minute": 30,
+			"hour": 8,
+			"minute": 15,
 			"second": 0
 		},
 		"number_of_pages": 10
